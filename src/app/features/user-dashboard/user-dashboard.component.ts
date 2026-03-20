@@ -1,13 +1,24 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatIconModule } from '@angular/material/icon';
+import { PortfolioComponent } from './portfolio/portfolio.component';
+import { HoldingsTableComponent } from './holdings-table/holdings-table.component';
+import { TradeFormComponent } from './trade-form/trade-form.component';
+import { PriceChartComponent } from './price-chart/price-chart.component';
 
 @Component({
   selector: 'app-user-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, MatTabsModule, MatIconModule],
+  imports: [
+    CommonModule,
+    MatTabsModule,
+    MatIconModule,
+    PortfolioComponent,
+    HoldingsTableComponent,
+    TradeFormComponent,
+    PriceChartComponent,
+  ],
   template: `
     <div class="dashboard-container">
       <div class="dashboard-header">
@@ -21,7 +32,7 @@ import { MatIconModule } from '@angular/material/icon';
             <span>Portfolio</span>
           </ng-template>
           <div class="tab-content">
-            <router-outlet></router-outlet>
+            <app-portfolio></app-portfolio>
           </div>
         </mat-tab>
 
@@ -31,7 +42,7 @@ import { MatIconModule } from '@angular/material/icon';
             <span>Holdings</span>
           </ng-template>
           <div class="tab-content">
-            <router-outlet name="holdings"></router-outlet>
+            <app-holdings-table></app-holdings-table>
           </div>
         </mat-tab>
 
@@ -41,7 +52,7 @@ import { MatIconModule } from '@angular/material/icon';
             <span>Trade</span>
           </ng-template>
           <div class="tab-content">
-            <router-outlet name="trade"></router-outlet>
+            <app-trade-form></app-trade-form>
           </div>
         </mat-tab>
 
@@ -51,7 +62,7 @@ import { MatIconModule } from '@angular/material/icon';
             <span>Charts</span>
           </ng-template>
           <div class="tab-content">
-            <router-outlet name="chart"></router-outlet>
+            <app-price-chart></app-price-chart>
           </div>
         </mat-tab>
       </mat-tab-group>
@@ -100,14 +111,14 @@ import { MatIconModule } from '@angular/material/icon';
       }
 
       .tab-content {
-        padding: 16px;
+        padding: 12px;
       }
     }
   `]
 })
 export class UserDashboardComponent implements OnInit {
   ngOnInit(): void {
-    console.log('User Dashboard loaded');
+    console.log('User Dashboard Component loaded');
   }
 }
 

@@ -4,6 +4,7 @@ import { of } from 'rxjs';
 import { map, catchError, switchMap, tap } from 'rxjs/operators';
 import { AuthService } from '../../core/auth/services/auth.service';
 import * as AuthActions from './auth.actions';
+import * as PortfolioActions from '../portfolio/portfolio.actions';
 
 @Injectable()
 export class AuthEffects {
@@ -60,6 +61,38 @@ export class AuthEffects {
       ofType(AuthActions.logout),
       tap(() => this.authService.logout()),
       map(() => AuthActions.logoutSuccess())
+    )
+  );
+
+  // Initialize portfolio after successful login
+  initializePortfolioAfterLogin$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.loginSuccess),
+      map(({ response }) =>
+        PortfolioActions.initializeMockPortfolio({
+          userRole: response.user.role,
+        })
+      )
+    )
+  );
+
+  // Initialize portfolio after successful register
+  initializePortfolioAfterRegister$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.registerSuccess),
+      map(({ response }) =>
+        PortfolioActions.initializeMockPortfolio({
+          userRole: response.user.role,
+        })
+      )
+    )
+  );
+
+  // Clear portfolio on logout
+  clearPortfolioOnLogout$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.logoutSuccess),
+      map(() => PortfolioActions.clearPortfolio())
     )
   );
 

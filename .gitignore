@@ -44,3 +44,21 @@ testem.log
 # System Files
 .DS_Store
 Thumbs.db
+.angular/cache
+
+# Angular
+.angular/
+dist/
+node_modules/
+
+# Logs
+npm-debug.log
+yarn-error.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

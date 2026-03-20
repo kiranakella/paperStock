@@ -199,6 +199,7 @@ import { Portfolio } from '../../../core/models/portfolio.model';
       display: flex;
       align-items: baseline;
       gap: 8px;
+      color: inherit;  /* Inherit white color from card for dark backgrounds */
     }
 
     .card-value.positive {
@@ -212,6 +213,7 @@ import { Portfolio } from '../../../core/models/portfolio.model';
     .pnl-percent {
       font-size: 16px;
       font-weight: 500;
+      color: inherit;
 
       &.positive {
         color: #4caf50;

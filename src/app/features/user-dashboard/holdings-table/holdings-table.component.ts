@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Store } from '@ngrx/store';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -7,7 +7,8 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Observable } from 'rxjs';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { AppState } from '../../../config/ngrx.config';
 import * as PortfolioSelectors from '../../../store/portfolio/portfolio.selectors';
 
@@ -233,20 +234,33 @@ import * as PortfolioSelectors from '../../../store/portfolio/portfolio.selector
     }
   `]
 })
-export class HoldingsTableComponent implements OnInit {
-  holdings$: Observable<any[]>;
+export class HoldingsTableComponent implements OnInit, OnDestroy {
+  holdings$ = this.store.select(PortfolioSelectors.selectHoldings);
   dataSource = new MatTableDataSource<any>([]);
   displayedColumns: string[] = ['symbol', 'quantity', 'avgPrice', 'currentPrice', 'totalInvested', 'currentValue', 'pnl', 'dayPnL', 'actions'];
+  private destroy$ = new Subject<void>();
 
-  constructor(private store: Store<AppState>) {
-    this.holdings$ = this.store.select(PortfolioSelectors.selectHoldings);
-  }
+  constructor(
+    private store: Store<AppState>,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     console.log('Holdings Table Component loaded');
-    this.holdings$.subscribe((holdings) => {
-      this.dataSource.data = holdings || [];
-    });
+    this.holdings$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((holdings) => {
+        if (holdings && holdings.length > 0) {
+          console.log('Holdings updated:', holdings.length);
+          this.dataSource.data = holdings;
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
 

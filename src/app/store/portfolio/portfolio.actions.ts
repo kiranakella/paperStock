@@ -51,3 +51,9 @@ export const updatePortfolioValue = createAction(
 export const clearPortfolio = createAction(
   '[Portfolio] Clear Portfolio'
 );
+
+// Initialize Mock Portfolio Actions
+export const initializeMockPortfolio = createAction(
+  '[Portfolio] Initialize Mock Portfolio',
+  props<{ userRole: 'ADMIN' | 'PAID' | 'FREE' }>()
+);

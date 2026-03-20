@@ -10,8 +10,11 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { Store } from '@ngrx/store';
 import { AuthService } from './core/auth/services/auth.service';
 import { User } from './core/models/user.model';
+import { AppState } from './config/ngrx.config';
+import * as PortfolioActions from './store/portfolio/portfolio.actions';
 
 @Component({
   selector: 'app-root',
@@ -43,7 +46,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private store: Store<AppState>
+  ) {}
 
   ngOnInit(): void {
     // Subscribe to auth state
@@ -55,9 +61,13 @@ export class AppComponent implements OnInit, OnDestroy {
       if (user) {
         this.userName = user.name;
         this.userRole = user.role;
+        // Initialize portfolio when user logs in
+        this.store.dispatch(PortfolioActions.initializeMockPortfolio({ userRole: user.role }));
       } else {
         this.userName = 'User';
         this.userRole = 'FREE';
+        // Clear portfolio when user logs out
+        this.store.dispatch(PortfolioActions.clearPortfolio());
       }
     });
   }

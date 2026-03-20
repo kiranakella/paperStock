@@ -1,235 +1,149 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatSelectModule } from '@angular/material/select';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { FormsModule } from '@angular/forms';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 import { Store } from '@ngrx/store';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { AppState } from '../../../config/ngrx.config';
-import { Observable } from 'rxjs';
+import { Holding } from '../../../core/models/portfolio.model';
+import { NIFTY_50_STOCKS, StockList } from '../../../core/models/stock.model';
+import * as PortfolioSelectors from '../../../store/portfolio/portfolio.selectors';
 
 @Component({
   selector: 'app-price-chart',
   standalone: true,
   imports: [
     CommonModule,
-    MatCardModule,
-    MatSelectModule,
-    MatFormFieldModule,
-    MatButtonToggleModule,
     FormsModule,
+    MatButtonToggleModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatSelectModule,
   ],
-  template: `
-    <div class="chart-container">
-      <!-- Chart Header -->
-      <mat-card class="chart-card">
-        <mat-card-header>
-          <mat-card-title>Stock Price Chart</mat-card-title>
-        </mat-card-header>
-
-        <mat-card-content>
-          <!-- Controls -->
-          <div class="chart-controls">
-            <mat-form-field appearance="outline">
-              <mat-label>Select Stock</mat-label>
-              <mat-select [(ngModel)]="selectedStock" (selectionChange)="onStockChange()">
-                <mat-option value="RELIANCE">RELIANCE</mat-option>
-                <mat-option value="TCS">TCS</mat-option>
-                <mat-option value="INFY">INFY</mat-option>
-                <mat-option value="WIPRO">WIPRO</mat-option>
-                <mat-option value="HINDUNILVR">HINDUNILVR</mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <mat-button-toggle-group [(ngModel)]="chartTimeframe" (change)="onTimeframeChange()" [value]="chartTimeframe">
-              <mat-button-toggle value="1D">1D</mat-button-toggle>
-              <mat-button-toggle value="1W">1W</mat-button-toggle>
-              <mat-button-toggle value="1M">1M</mat-button-toggle>
-              <mat-button-toggle value="3M">3M</mat-button-toggle>
-              <mat-button-toggle value="1Y">1Y</mat-button-toggle>
-            </mat-button-toggle-group>
-          </div>
-
-          <!-- Chart Placeholder -->
-          <div class="chart-wrapper">
-            <div class="chart-placeholder">
-              <p>📈 Stock Price Chart Visualization</p>
-              <p style="font-size: 12px; color: #999;">Chart integration coming soon...</p>
-            </div>
-          </div>
-
-          <!-- Chart Stats -->
-          <div class="chart-stats">
-            <div class="stat">
-              <span class="stat-label">Current Price:</span>
-              <span class="stat-value">₹{{ currentPrice | number:'1.2-2' }}</span>
-            </div>
-            <div class="stat">
-              <span class="stat-label">High:</span>
-              <span class="stat-value">₹{{ highPrice | number:'1.2-2' }}</span>
-            </div>
-            <div class="stat">
-              <span class="stat-label">Low:</span>
-              <span class="stat-value">₹{{ lowPrice | number:'1.2-2' }}</span>
-            </div>
-            <div class="stat">
-              <span class="stat-label">Change:</span>
-              <span class="stat-value" [ngClass]="priceChange >= 0 ? 'positive' : 'negative'">
-                ₹{{ priceChange | number:'1.2-2' }} ({{ priceChangePercent | number:'1.2-2' }}%)
-              </span>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  `,
-  styles: [`
-    .chart-container {
-      background: #f5f5f5;
-      padding: 20px;
-      border-radius: 8px;
-    }
-
-    .chart-card {
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    mat-card-header {
-      padding: 20px;
-      border-bottom: 2px solid #f0f0f0;
-    }
-
-    mat-card-title {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 600;
-      color: #212121;
-    }
-
-    mat-card-content {
-      padding: 20px;
-    }
-
-    .chart-controls {
-      display: flex;
-      gap: 20px;
-      margin-bottom: 24px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    mat-form-field {
-      min-width: 200px;
-    }
-
-    .chart-wrapper {
-      position: relative;
-      width: 100%;
-      height: 400px;
-      margin-bottom: 20px;
-      background: #f9f9f9;
-      border-radius: 8px;
-      padding: 16px;
-      border: 2px dashed #e0e0e0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .chart-placeholder {
-      text-align: center;
-      color: #999;
-
-      p {
-        margin: 8px 0;
-        font-size: 16px;
-      }
-    }
-
-    .chart-stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 16px;
-      padding: 16px;
-      background: #f9f9f9;
-      border-radius: 8px;
-    }
-
-    .stat {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .stat-label {
-      font-size: 12px;
-      color: #666;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .stat-value {
-      font-size: 18px;
-      font-weight: 600;
-      color: #212121;
-
-      &.positive {
-        color: #4caf50;
-      }
-
-      &.negative {
-        color: #f44336;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .chart-container {
-        padding: 12px;
-      }
-
-      .chart-controls {
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      mat-form-field {
-        width: 100%;
-      }
-
-      .chart-wrapper {
-        height: 300px;
-      }
-
-      .chart-stats {
-        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-      }
-    }
-  `]
+  templateUrl: './price-chart.component.html',
 })
-export class PriceChartComponent implements OnInit {
+export class PriceChartComponent implements OnInit, OnDestroy {
   selectedStock = 'INFY';
   chartTimeframe = '1D';
-  currentPrice = 2850.50;
+  stockOptions: StockList[] = NIFTY_50_STOCKS.slice(0, 10);
+  currentPrice = 2850.5;
   highPrice = 2900;
   lowPrice = 2800;
-  priceChange = 50.50;
+  priceChange = 50.5;
   priceChangePercent = 1.81;
+  linePoints = '';
+  areaPoints = '';
+
+  private holdingsSnapshot: Holding[] = [];
+  private destroy$ = new Subject<void>();
 
   constructor(private store: Store<AppState>) {}
 
   ngOnInit(): void {
-    console.log('Price Chart Component loaded');
+    this.store.select(PortfolioSelectors.selectHoldings)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((holdings) => {
+        this.holdingsSnapshot = holdings ?? [];
+
+        if (!this.holdingsSnapshot.some((holding) => holding.symbol === this.selectedStock) && this.holdingsSnapshot.length > 0) {
+          this.selectedStock = this.holdingsSnapshot[0].symbol;
+        }
+
+        this.syncChartData();
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   onStockChange(): void {
-    console.log('Stock changed to:', this.selectedStock);
+    this.syncChartData();
   }
 
   onTimeframeChange(): void {
-    console.log('Timeframe changed to:', this.chartTimeframe);
+    this.syncChartData();
+  }
+
+  private syncChartData(): void {
+    const basePrice = this.getBasePrice(this.selectedStock);
+    const points = this.buildSeries(basePrice, this.selectedStock, this.chartTimeframe);
+
+    this.currentPrice = points[points.length - 1];
+    this.highPrice = Math.max(...points);
+    this.lowPrice = Math.min(...points);
+    this.priceChange = this.currentPrice - points[0];
+    this.priceChangePercent = points[0] ? (this.priceChange / points[0]) * 100 : 0;
+    this.linePoints = this.toSvgPoints(points);
+    this.areaPoints = `0,100 ${this.linePoints} 100,100`;
+  }
+
+  private getBasePrice(symbol: string): number {
+    const matchedHolding = this.holdingsSnapshot.find((holding) => holding.symbol === symbol);
+    if (matchedHolding) {
+      return matchedHolding.currentPrice;
+    }
+
+    const fallbackPrices: Record<string, number> = {
+      RELIANCE: 2925.5,
+      TCS: 3350,
+      INFY: 2850.5,
+      WIPRO: 460.75,
+      HINDUNILVR: 2550,
+      LT: 3725.4,
+      HCLTECH: 1520.5,
+      AXISBANK: 945.75,
+      ICICIBANK: 925.5,
+      HDFC: 1685.25,
+    };
+
+    return fallbackPrices[symbol] ?? 1000;
+  }
+
+  private buildSeries(basePrice: number, symbol: string, timeframe: string): number[] {
+    const lengths: Record<string, number> = {
+      '1D': 8,
+      '1W': 10,
+      '1M': 12,
+      '3M': 14,
+      '1Y': 16,
+    };
+
+    const driftMap: Record<string, number> = {
+      '1D': 0.004,
+      '1W': 0.009,
+      '1M': 0.018,
+      '3M': 0.026,
+      '1Y': 0.042,
+    };
+
+    const count = lengths[timeframe] ?? 8;
+    const drift = driftMap[timeframe] ?? 0.004;
+    const seed = symbol.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+
+    return Array.from({ length: count }, (_, index) => {
+      const wave = Math.sin((index + seed % 5) * 0.9) * basePrice * drift;
+      const bias = (index - (count - 1) / 2) * basePrice * (drift / 3);
+      return Number((basePrice + wave + bias).toFixed(2));
+    });
+  }
+
+  private toSvgPoints(points: number[]): string {
+    const min = Math.min(...points);
+    const max = Math.max(...points);
+    const range = Math.max(max - min, 1);
+
+    return points
+      .map((point, index) => {
+        const x = points.length === 1 ? 50 : (index / (points.length - 1)) * 100;
+        const y = 92 - (((point - min) / range) * 72);
+        return `${x.toFixed(2)},${y.toFixed(2)}`;
+      })
+      .join(' ');
   }
 }

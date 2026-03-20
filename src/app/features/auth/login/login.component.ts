@@ -27,7 +27,6 @@ import { LoginRequest } from '../../../core/models/user.model';
     MatProgressSpinnerModule,
   ],
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent implements OnInit {
   email = '';

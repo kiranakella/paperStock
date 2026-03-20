@@ -5,6 +5,6 @@ import { CommonModule } from '@angular/common';
   selector: 'app-analytics',
   standalone: true,
   imports: [CommonModule],
-  template: '<p>Analytics Component</p>',
+  templateUrl: './analytics.component.html',
 })
 export class AnalyticsComponent {}

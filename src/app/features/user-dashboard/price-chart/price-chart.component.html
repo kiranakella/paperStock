@@ -1,0 +1,94 @@
+<div class="chart-container">
+  <mat-card class="chart-card">
+    <mat-card-header>
+      <mat-card-title>Stock Price Chart</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="chart-controls">
+        <mat-form-field appearance="outline">
+          <mat-label>Select Stock</mat-label>
+          <mat-select [(ngModel)]="selectedStock" (selectionChange)="onStockChange()">
+            <mat-option *ngFor="let stock of stockOptions" [value]="stock.symbol">
+              {{ stock.symbol }} - {{ stock.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-button-toggle-group
+          [(ngModel)]="chartTimeframe"
+          (change)="onTimeframeChange()"
+          [value]="chartTimeframe"
+        >
+          <mat-button-toggle value="1D">1D</mat-button-toggle>
+          <mat-button-toggle value="1W">1W</mat-button-toggle>
+          <mat-button-toggle value="1M">1M</mat-button-toggle>
+          <mat-button-toggle value="3M">3M</mat-button-toggle>
+          <mat-button-toggle value="1Y">1Y</mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
+
+      <div class="chart-wrapper">
+        <svg
+          class="price-chart"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          aria-label="Mock stock price chart"
+        >
+          <defs>
+            <linearGradient id="priceFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#5c6bc0" stop-opacity="0.28"></stop>
+              <stop offset="100%" stop-color="#5c6bc0" stop-opacity="0.02"></stop>
+            </linearGradient>
+          </defs>
+
+          <polyline
+            class="chart-area"
+            [attr.points]="areaPoints"
+            fill="url(#priceFill)"
+            stroke="none"
+          ></polyline>
+
+          <polyline
+            class="chart-line"
+            [attr.points]="linePoints"
+            fill="none"
+            stroke="#3f51b5"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          ></polyline>
+        </svg>
+
+        <div class="chart-overlay">
+          <div class="chart-badge">
+            <strong>{{ selectedStock }}</strong>
+            <span>{{ chartTimeframe }} mock trend</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-stats">
+        <div class="stat">
+          <span class="stat-label">Current Price:</span>
+          <span class="stat-value">{{ currentPrice | currency:'INR':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">High:</span>
+          <span class="stat-value">{{ highPrice | currency:'INR':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Low:</span>
+          <span class="stat-value">{{ lowPrice | currency:'INR':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Change:</span>
+          <span class="stat-value" [ngClass]="priceChange >= 0 ? 'positive' : 'negative'">
+            {{ priceChange | currency:'INR':'symbol':'1.2-2' }}
+            ({{ priceChangePercent | number:'1.2-2' }}%)
+          </span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

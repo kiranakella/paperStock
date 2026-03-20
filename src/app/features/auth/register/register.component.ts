@@ -23,7 +23,6 @@ import { MatIconModule } from '@angular/material/icon';
     MatIconModule,
   ],
   templateUrl: './register.component.html',
-  styleUrls: ['./register.component.scss'],
 })
 export class RegisterComponent {
   name = '';

@@ -6,6 +6,6 @@ import { RouterOutlet } from '@angular/router';
   selector: 'app-admin-dashboard',
   standalone: true,
   imports: [CommonModule, RouterOutlet],
-  template: '<router-outlet></router-outlet>',
+  templateUrl: './admin-dashboard.component.html',
 })
 export class AdminDashboardComponent {}

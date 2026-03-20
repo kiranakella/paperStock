@@ -32,7 +32,6 @@ import * as PortfolioActions from './store/portfolio/portfolio.actions';
     MatDividerModule,
   ],
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
   host: {
     class: 'app-root',
   },
@@ -84,4 +83,3 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 }
-

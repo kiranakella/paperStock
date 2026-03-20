@@ -109,7 +109,7 @@ export const appRoutes: Routes = [
       import('./features/trading/trade-history/trade-history.component').then(
         m => m.TradeHistoryComponent
       ),
-    canActivate: [AuthGuard],
+    canActivate: [],  // AuthGuard will be added
   },
   {
     path: 'settings',
@@ -117,7 +117,7 @@ export const appRoutes: Routes = [
       import('./features/user-dashboard/settings/settings.component').then(
         m => m.SettingsComponent
       ),
-    canActivate: [AuthGuard],
+    canActivate: [],  // AuthGuard will be added
   },
   {
     path: '**',

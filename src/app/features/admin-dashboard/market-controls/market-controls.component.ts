@@ -5,6 +5,6 @@ import { CommonModule } from '@angular/common';
   selector: 'app-market-controls',
   standalone: true,
   imports: [CommonModule],
-  template: '<p>Market Controls Component</p>',
+  templateUrl: './market-controls.component.html',
 })
 export class MarketControlsComponent {}

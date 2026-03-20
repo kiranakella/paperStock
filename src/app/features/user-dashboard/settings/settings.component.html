@@ -1,0 +1,138 @@
+<div class="settings-container">
+  <mat-card class="settings-card">
+    <mat-card-header>
+      <mat-card-title>Profile Settings</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="profileForm" (ngSubmit)="onSaveProfile()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Full Name</mat-label>
+          <input matInput formControlName="name" placeholder="Enter your full name" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="email" type="email" placeholder="Enter your email" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Phone Number</mat-label>
+          <input matInput formControlName="phone" placeholder="Enter your phone number" />
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" type="submit" [disabled]="!profileForm.valid">
+          <mat-icon>save</mat-icon>
+          Save Profile
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="settings-card">
+    <mat-card-header>
+      <mat-card-title>Trading Preferences</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="preferencesForm">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Default Order Type</mat-label>
+          <mat-select formControlName="defaultOrderType">
+            <mat-option value="MARKET">Market Order</mat-option>
+            <mat-option value="LIMIT">Limit Order</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Notification Level</mat-label>
+          <mat-select formControlName="notificationLevel">
+            <mat-option value="ALL">All Notifications</mat-option>
+            <mat-option value="IMPORTANT">Important Only</mat-option>
+            <mat-option value="NONE">Disabled</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div class="toggle-section">
+          <span class="toggle-label">Email Notifications</span>
+          <mat-slide-toggle formControlName="emailNotifications"></mat-slide-toggle>
+        </div>
+
+        <div class="toggle-section">
+          <span class="toggle-label">SMS Alerts</span>
+          <mat-slide-toggle formControlName="smsAlerts"></mat-slide-toggle>
+        </div>
+
+        <button mat-raised-button color="primary" (click)="onSavePreferences()">
+          <mat-icon>save</mat-icon>
+          Save Preferences
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="settings-card">
+    <mat-card-header>
+      <mat-card-title>Account Security</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="account-section">
+        <div class="account-info">
+          <span class="label">Last Login:</span>
+          <span class="value">2026-03-20 14:30:45</span>
+        </div>
+
+        <div class="account-info">
+          <span class="label">Account Created:</span>
+          <span class="value">2026-01-15</span>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()">
+          <h3 class="section-title">Change Password</h3>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Current Password</mat-label>
+            <input matInput formControlName="currentPassword" type="password" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>New Password</mat-label>
+            <input matInput formControlName="newPassword" type="password" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Confirm Password</mat-label>
+            <input matInput formControlName="confirmPassword" type="password" />
+          </mat-form-field>
+
+          <button mat-raised-button color="primary" type="submit" [disabled]="!passwordForm.valid">
+            <mat-icon>security</mat-icon>
+            Change Password
+          </button>
+        </form>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="settings-card danger">
+    <mat-card-header>
+      <mat-card-title>Danger Zone</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="danger-section">
+        <div>
+          <h3>Delete Account</h3>
+          <p>Permanently delete your account and all associated data. This action cannot be undone.</p>
+        </div>
+        <button mat-raised-button color="warn">
+          <mat-icon>delete_forever</mat-icon>
+          Delete Account
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

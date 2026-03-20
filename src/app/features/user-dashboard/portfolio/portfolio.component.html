@@ -1,0 +1,85 @@
+<div class="portfolio-grid">
+  <mat-card class="stat-card primary">
+    <mat-card-content>
+      <div class="card-header">
+        <mat-icon class="card-icon">account_balance_wallet</mat-icon>
+        <span class="card-label">Portfolio Value</span>
+      </div>
+      <div class="card-value">
+        &#8377;{{ (portfolio$ | async)?.totalValue | number:'1.2-2' || '0.00' }}
+      </div>
+      <div class="card-subtitle">Total Holdings</div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="stat-card" [ngClass]="(((todayPnL$ | async) || 0) >= 0) ? 'success' : 'danger'">
+    <mat-card-content>
+      <div class="card-header">
+        <mat-icon class="card-icon">trending_up</mat-icon>
+        <span class="card-label">Today's P&amp;L</span>
+      </div>
+      <div class="card-value" [ngClass]="(((todayPnL$ | async) || 0) >= 0) ? 'positive' : 'negative'">
+        &#8377;{{ (todayPnL$ | async) | number:'1.2-2' || '0.00' }}
+        <span class="pnl-percent" [ngClass]="(((todayPnLPercent$ | async) || 0) >= 0) ? 'positive' : 'negative'">
+          ({{ (todayPnLPercent$ | async) | number:'1.2-2' }}%)
+        </span>
+      </div>
+      <mat-progress-bar mode="determinate" value="50" class="progress"></mat-progress-bar>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="stat-card" [ngClass]="(((portfolioPnL$ | async) || 0) >= 0) ? 'success' : 'danger'">
+    <mat-card-content>
+      <div class="card-header">
+        <mat-icon class="card-icon">assessment</mat-icon>
+        <span class="card-label">Total P&amp;L</span>
+      </div>
+      <div class="card-value" [ngClass]="(((portfolioPnL$ | async) || 0) >= 0) ? 'positive' : 'negative'">
+        &#8377;{{ (portfolioPnL$ | async) | number:'1.2-2' || '0.00' }}
+        <span class="pnl-percent" [ngClass]="(((portfolioPnLPercent$ | async) || 0) >= 0) ? 'positive' : 'negative'">
+          ({{ (portfolioPnLPercent$ | async) | number:'1.2-2' }}%)
+        </span>
+      </div>
+      <mat-progress-bar mode="determinate" value="50"></mat-progress-bar>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="stat-card info">
+    <mat-card-content>
+      <div class="card-header">
+        <mat-icon class="card-icon">paid</mat-icon>
+        <span class="card-label">Available Cash</span>
+      </div>
+      <div class="card-value">
+        &#8377;{{ (cash$ | async) | number:'1.2-2' || '0.00' }}
+      </div>
+      <div class="card-subtitle">Ready to Trade</div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="stat-card warning">
+    <mat-card-content>
+      <div class="card-header">
+        <mat-icon class="card-icon">inventory_2</mat-icon>
+        <span class="card-label">Holdings</span>
+      </div>
+      <div class="card-value">
+        {{ (holdingCount$ | async) || 0 }}
+      </div>
+      <div class="card-subtitle">Active Positions</div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="stat-card secondary">
+    <mat-card-content>
+      <div class="card-header">
+        <mat-icon class="card-icon">history</mat-icon>
+        <span class="card-label">Total Trades</span>
+      </div>
+      <div class="card-value">
+        {{ (tradeCount$ | async) || 0 }}
+      </div>
+      <div class="card-subtitle">All-time Trades</div>
+    </mat-card-content>
+  </mat-card>
+</div>

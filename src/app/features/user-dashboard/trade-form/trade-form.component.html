@@ -1,0 +1,149 @@
+<div class="trade-container">
+  <div class="trade-grid">
+    <mat-card class="trade-form-card">
+      <mat-card-header>
+        <mat-card-title>Place Trade</mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <form [formGroup]="tradeForm" (ngSubmit)="onSubmit()">
+          <div class="form-section">
+            <label class="section-label">Trade Type</label>
+            <mat-radio-group formControlName="tradeType" class="radio-group">
+              <mat-radio-button value="BUY" color="primary">
+                <mat-icon class="radio-icon buy">trending_up</mat-icon> BUY
+              </mat-radio-button>
+              <mat-radio-button value="SELL" color="warn">
+                <mat-icon class="radio-icon sell">trending_down</mat-icon> SELL
+              </mat-radio-button>
+            </mat-radio-group>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Select Stock</mat-label>
+            <mat-select formControlName="symbol">
+              <mat-option value="">-- Choose a stock --</mat-option>
+              <mat-option *ngFor="let stock of stockOptions" [value]="stock.symbol">
+                {{ stock.symbol }} - {{ stock.name }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="tradeForm.get('symbol')?.hasError('required')">
+              Stock is required
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Order Type</mat-label>
+            <mat-select formControlName="orderType">
+              <mat-option value="MARKET">Market Order</mat-option>
+              <mat-option value="LIMIT">Limit Order</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Quantity</mat-label>
+            <input
+              matInput
+              formControlName="quantity"
+              type="number"
+              min="1"
+              placeholder="Enter quantity"
+            />
+            <mat-error *ngIf="tradeForm.get('quantity')?.hasError('required')">
+              Quantity is required
+            </mat-error>
+            <mat-error *ngIf="tradeForm.get('quantity')?.hasError('min')">
+              Quantity must be at least 1
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width" *ngIf="tradeForm.get('orderType')?.value === 'LIMIT'">
+            <mat-label>Price per Share</mat-label>
+            <input
+              matInput
+              formControlName="price"
+              type="number"
+              min="0.01"
+              step="0.01"
+              placeholder="Enter limit price"
+            />
+            <mat-error *ngIf="tradeForm.get('price')?.hasError('required')">
+              Price is required for limit orders
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Total Amount</mat-label>
+            <input
+              matInput
+              [value]="getTotalAmount() | currency:'INR':'symbol':'1.2-2'"
+              readonly
+              disabled
+            />
+          </mat-form-field>
+
+          <button
+            mat-raised-button
+            [color]="tradeForm.get('tradeType')?.value === 'BUY' ? 'primary' : 'warn'"
+            [disabled]="!tradeForm.valid || isSubmitting"
+            (click)="onSubmit()"
+            class="submit-btn"
+          >
+            <mat-icon *ngIf="!isSubmitting">{{ tradeForm.get('tradeType')?.value === 'BUY' ? 'shopping_cart' : 'sell' }}</mat-icon>
+            <mat-spinner *ngIf="isSubmitting" diameter="20" class="button-spinner"></mat-spinner>
+            {{ tradeForm.get('tradeType')?.value === 'BUY' ? 'Place Buy Order' : 'Place Sell Order' }}
+          </button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="summary-card">
+      <mat-card-header>
+        <mat-card-title>Order Summary</mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="summary-row">
+          <span class="summary-label">Trade Type:</span>
+          <span class="summary-value" [ngClass]="tradeForm.get('tradeType')?.value?.toLowerCase()">
+            {{ tradeForm.get('tradeType')?.value || 'N/A' }}
+          </span>
+        </div>
+
+        <div class="summary-row">
+          <span class="summary-label">Stock:</span>
+          <span class="summary-value">{{ tradeForm.get('symbol')?.value || 'Select stock' }}</span>
+        </div>
+
+        <div class="summary-row">
+          <span class="summary-label">Mock Price:</span>
+          <span class="summary-value">{{ selectedStockPrice | currency:'INR':'symbol':'1.2-2' }}</span>
+        </div>
+
+        <div class="summary-row">
+          <span class="summary-label">Quantity:</span>
+          <span class="summary-value">{{ tradeForm.get('quantity')?.value || 0 }} units</span>
+        </div>
+
+        <div class="summary-row" *ngIf="tradeForm.get('orderType')?.value === 'LIMIT'">
+          <span class="summary-label">Limit Price:</span>
+          <span class="summary-value">&#8377;{{ tradeForm.get('price')?.value | number:'1.2-2' }}</span>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="summary-row total">
+          <span class="summary-label">Total Amount:</span>
+          <span class="summary-value">{{ getTotalAmount() | currency:'INR':'symbol':'1.2-2' }}</span>
+        </div>
+
+        <div class="info-box">
+          <mat-icon>info</mat-icon>
+          <span>Available Cash: {{ (cash$ | async) | currency:'INR':'symbol':'1.2-2' }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

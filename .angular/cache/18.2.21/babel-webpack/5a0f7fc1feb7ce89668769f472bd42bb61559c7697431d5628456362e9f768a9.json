@@ -1,0 +1,1 @@
+{"ast":null,"code":"export const environment = {\n  production: true,\n  apiUrl: 'https://api.paperstockindia.com',\n  graphqlUrl: 'https://api.paperstockindia.com/graphql',\n  wsUrl: 'wss://api.paperstockindia.com/ws/graphql',\n  refreshTokenInterval: 15 * 60 * 1000 // 15 minutes\n};","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}

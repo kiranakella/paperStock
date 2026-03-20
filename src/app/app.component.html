@@ -1,21 +1,78 @@
-<!--The content below is only a placeholder and can be replaced.-->
-<div style="text-align:center">
-  <h1>
-    Welcome to {{ title }}!
-  </h1>
-  <img width="300" alt="Angular Logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTAgMjUwIj4KICAgIDxwYXRoIGZpbGw9IiNERDAwMzEiIGQ9Ik0xMjUgMzBMMzEuOSA2My4ybDE0LjIgMTIzLjFMMTI1IDIzMGw3OC45LTQzLjcgMTQuMi0xMjMuMXoiIC8+CiAgICA8cGF0aCBmaWxsPSIjQzMwMDJGIiBkPSJNMTI1IDMwdjIyLjItLjFWMjMwbDc4LjktNDMuNyAxNC4yLTEyMy4xTDEyNSAzMHoiIC8+CiAgICA8cGF0aCAgZmlsbD0iI0ZGRkZGRiIgZD0iTTEyNSA1Mi4xTDY2LjggMTgyLjZoMjEuN2wxMS43LTI5LjJoNDkuNGwxMS43IDI5LjJIMTgzTDEyNSA1Mi4xem0xNyA4My4zaC0zNGwxNy00MC45IDE3IDQwLjl6IiAvPgogIDwvc3ZnPg==">
-</div>
-<h2>Here are some links to help you start: </h2>
-<ul>
-  <li>
-    <h2><a target="_blank" rel="noopener" href="https://angular.io/tutorial">Tour of Heroes</a></h2>
-  </li>
-  <li>
-    <h2><a target="_blank" rel="noopener" href="https://angular.io/cli">CLI Documentation</a></h2>
-  </li>
-  <li>
-    <h2><a target="_blank" rel="noopener" href="https://blog.angular.io/">Angular blog</a></h2>
-  </li>
-</ul>
+<mat-sidenav-container class="app-container">
+  <!-- Sidebar -->
+  <mat-sidenav #sidenav mode="side" [opened]="isLoggedIn" class="sidebar">
+    <mat-toolbar color="primary" class="sidebar-header">
+      <span>PaperStockIndia</span>
+    </mat-toolbar>
 
-<router-outlet></router-outlet>
+    <mat-nav-list>
+      <mat-list-item [routerLink]="['/dashboard']" routerLinkActive="active">
+        <mat-icon matListItemIcon>dashboard</mat-icon>
+        <span matListItemTitle>Dashboard</span>
+      </mat-list-item>
+
+      <mat-list-item [routerLink]="['/dashboard/portfolio']" routerLinkActive="active">
+        <mat-icon matListItemIcon>account_balance</mat-icon>
+        <span matListItemTitle>Portfolio</span>
+      </mat-list-item>
+
+      <mat-list-item [routerLink]="['/dashboard/trade']" routerLinkActive="active">
+        <mat-icon matListItemIcon>show_chart</mat-icon>
+        <span matListItemTitle>Trade</span>
+      </mat-list-item>
+
+      <mat-list-item [routerLink]="['/trade-history']" routerLinkActive="active">
+        <mat-icon matListItemIcon>history</mat-icon>
+        <span matListItemTitle>Trade History</span>
+      </mat-list-item>
+
+      <!-- Admin Panel (role-based) -->
+      <mat-divider></mat-divider>
+      <mat-list-item [routerLink]="['/admin']" *ngIf="userRole === 'ADMIN'" routerLinkActive="active">
+        <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
+        <span matListItemTitle>Admin Panel</span>
+      </mat-list-item>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <!-- Main Content -->
+  <mat-sidenav-content>
+    <!-- Top Navigation Bar -->
+    <mat-toolbar color="primary" class="app-toolbar">
+      <button mat-icon-button (click)="sidenav.toggle()" *ngIf="isLoggedIn">
+        <mat-icon>menu</mat-icon>
+      </button>
+
+      <span class="spacer"></span>
+
+      <div class="user-section" *ngIf="isLoggedIn">
+        <span class="role-badge">{{ userRole }}</span>
+        <button mat-icon-button [matMenuTriggerFor]="userMenu">
+          <mat-icon>account_circle</mat-icon>
+        </button>
+        <mat-menu #userMenu="matMenu">
+          <button mat-menu-item disabled>
+            <span>{{ userName }}</span>
+          </button>
+          <mat-divider></mat-divider>
+          <button mat-menu-item [routerLink]="['/settings']">
+            <mat-icon>settings</mat-icon>
+            <span>Settings</span>
+          </button>
+          <button mat-menu-item (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            <span>Logout</span>
+          </button>
+        </mat-menu>
+      </div>
+    </mat-toolbar>
+
+    <!-- Page Content -->
+    <main class="app-content">
+      <router-outlet></router-outlet>
+    </main>
+
+    <!-- Notification Toast Area -->
+    <div class="notification-container"></div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

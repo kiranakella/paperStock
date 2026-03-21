@@ -2,3 +2,5 @@
   command = "npm run build -- --configuration production"
   publish = "dist/paperStock"
 
+[build.environment]
+  NPM_FLAGS = "--legacy-peer-deps"

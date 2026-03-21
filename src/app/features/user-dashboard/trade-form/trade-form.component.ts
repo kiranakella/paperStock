@@ -12,11 +12,14 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Store } from '@ngrx/store';
-import { Observable, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AppState } from '../../../config/ngrx.config';
 import { Holding } from '../../../core/models/portfolio.model';
-import { NIFTY_50_STOCKS, StockList } from '../../../core/models/stock.model';
+import { StockList } from '../../../core/models/stock.model';
+import { TradeRequest } from '../../../core/models/trade.model';
+import { StocksService } from '../../../core/services/stocks.service';
+import { TradesService } from '../../../core/services/trades.service';
 import * as PortfolioSelectors from '../../../store/portfolio/portfolio.selectors';
 
 @Component({
@@ -41,16 +44,19 @@ import * as PortfolioSelectors from '../../../store/portfolio/portfolio.selector
 export class TradeFormComponent implements OnInit, OnDestroy {
   tradeForm: FormGroup;
   isSubmitting = false;
-  cash$: Observable<number>;
-  stockOptions: StockList[] = NIFTY_50_STOCKS.slice(0, 10);
+  cash$ = this.store.select(PortfolioSelectors.selectCash);
+  stockOptions: StockList[] = [];
   selectedStockPrice = 0;
+  stockLoading$ = this.stocksService.loading$;
   private holdingsSnapshot: Holding[] = [];
   private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
     private store: Store<AppState>,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private stocksService: StocksService,
+    private tradesService: TradesService
   ) {
     this.tradeForm = this.fb.group({
       tradeType: ['BUY', Validators.required],
@@ -59,12 +65,14 @@ export class TradeFormComponent implements OnInit, OnDestroy {
       quantity: [1, [Validators.required, Validators.min(1)]],
       price: [0, Validators.required],
     });
-
-    this.cash$ = this.store.select(PortfolioSelectors.selectCash);
   }
 
   ngOnInit(): void {
-    console.log('Trade Form Component loaded');
+    this.tradesService.loading$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((isLoading) => {
+        this.isSubmitting = isLoading;
+      });
 
     this.store.select(PortfolioSelectors.selectHoldings)
       .pipe(takeUntil(this.destroy$))
@@ -91,6 +99,29 @@ export class TradeFormComponent implements OnInit, OnDestroy {
       .subscribe((symbol) => {
         this.updateSelectedStockPrice(symbol);
       });
+
+    this.stocksService.loadStocks()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => this.updateSelectedStockPrice(this.tradeForm.get('symbol')?.value),
+        error: (error) => {
+          this.snackBar.open(error.message || 'Failed to load stocks', 'Close', { duration: 3500 });
+        },
+      });
+
+    this.stocksService.loadStockOptions()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (stockOptions) => {
+          this.stockOptions = stockOptions;
+          if (!this.tradeForm.get('symbol')?.value && stockOptions.length > 0) {
+            this.tradeForm.patchValue({ symbol: stockOptions[0].symbol }, { emitEvent: true });
+          }
+        },
+        error: (error) => {
+          this.snackBar.open(error.message || 'Failed to load stock options', 'Close', { duration: 3500 });
+        },
+      });
   }
 
   getTotalAmount(): number {
@@ -107,54 +138,55 @@ export class TradeFormComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private updateSelectedStockPrice(symbol: string): void {
-    const matchedHolding = this.holdingsSnapshot.find((holding) => holding.symbol === symbol);
-    const fallbackPrices: Record<string, number> = {
-      RELIANCE: 2925.5,
-      TCS: 3350,
-      INFY: 2850.5,
-      WIPRO: 460.75,
-      HINDUNILVR: 2550,
-      LT: 3725.4,
-      HCLTECH: 1520.5,
-      AXISBANK: 945.75,
-      ICICIBANK: 925.5,
-      HDFC: 1685.25,
-    };
-
-    this.selectedStockPrice = matchedHolding?.currentPrice ?? fallbackPrices[symbol] ?? 0;
-
-    if (this.tradeForm.get('orderType')?.value === 'MARKET') {
-      this.tradeForm.patchValue({ price: this.selectedStockPrice }, { emitEvent: false });
-    }
-  }
-
   onSubmit(): void {
     if (!this.tradeForm.valid) {
       this.snackBar.open('Please fill all required fields', 'Close', { duration: 3000 });
       return;
     }
 
-    this.isSubmitting = true;
+    const formValue = this.tradeForm.value;
+    const request: TradeRequest = {
+      symbol: formValue.symbol,
+      type: formValue.tradeType,
+      orderType: formValue.orderType,
+      quantity: Number(formValue.quantity),
+      price: formValue.orderType === 'LIMIT' ? Number(formValue.price) : this.selectedStockPrice,
+    };
 
-    setTimeout(() => {
-      const formValue = this.tradeForm.value;
-      console.log('Trade submitted:', formValue);
+    this.tradesService.placeTrade(request)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.snackBar.open(
+            response.message || `${formValue.tradeType} order placed for ${formValue.quantity} units of ${formValue.symbol}`,
+            'Close',
+            { duration: 5000 }
+          );
 
-      this.snackBar.open(
-        `${formValue.tradeType} order placed for ${formValue.quantity} units of ${formValue.symbol}`,
-        'Close',
-        { duration: 5000 }
-      );
+          this.tradeForm.reset({
+            tradeType: 'BUY',
+            symbol: this.stockOptions[0]?.symbol || '',
+            orderType: 'MARKET',
+            quantity: 1,
+            price: 0,
+          });
 
-      this.isSubmitting = false;
-      this.tradeForm.reset({
-        tradeType: 'BUY',
-        symbol: '',
-        orderType: 'MARKET',
-        quantity: 1,
-        price: 0,
+          this.updateSelectedStockPrice(this.tradeForm.get('symbol')?.value);
+        },
+        error: (error) => {
+          this.snackBar.open(error.message || 'Failed to place trade', 'Close', { duration: 3500 });
+        },
       });
-    }, 1500);
+  }
+
+  private updateSelectedStockPrice(symbol: string): void {
+    const matchedHolding = this.holdingsSnapshot.find((holding) => holding.symbol === symbol);
+    const stockPrice = this.stocksService.getStockSnapshot(symbol)?.currentPrice;
+
+    this.selectedStockPrice = matchedHolding?.currentPrice ?? stockPrice ?? 0;
+
+    if (this.tradeForm.get('orderType')?.value === 'MARKET') {
+      this.tradeForm.patchValue({ price: this.selectedStockPrice }, { emitEvent: false });
+    }
   }
 }

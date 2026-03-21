@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -29,7 +29,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
   ],
   templateUrl: './settings.component.html',
 })
-export class SettingsComponent implements OnInit {
+export class SettingsComponent {
   profileForm: FormGroup;
   preferencesForm: FormGroup;
   passwordForm: FormGroup;
@@ -58,19 +58,13 @@ export class SettingsComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {
-    console.log('Settings Component loaded');
-  }
-
   onSaveProfile(): void {
     if (this.profileForm.valid) {
-      console.log('Saving profile:', this.profileForm.value);
       this.snackBar.open('Profile saved successfully!', 'Close', { duration: 3000 });
     }
   }
 
   onSavePreferences(): void {
-    console.log('Saving preferences:', this.preferencesForm.value);
     this.snackBar.open('Preferences saved successfully!', 'Close', { duration: 3000 });
   }
 
@@ -80,7 +74,6 @@ export class SettingsComponent implements OnInit {
         this.snackBar.open('Passwords do not match!', 'Close', { duration: 3000 });
         return;
       }
-      console.log('Changing password...');
       this.snackBar.open('Password changed successfully!', 'Close', { duration: 3000 });
       this.passwordForm.reset();
     }

@@ -69,8 +69,13 @@
 
         <div class="toolbar-meta">
           <span>{{ filteredUsers.length }} records</span>
+          <span *ngIf="loading$ | async">Loading users...</span>
           <span>Last sync: {{ lastSync }}</span>
         </div>
+      </div>
+
+      <div class="error-banner" *ngIf="error$ | async as error">
+        {{ error }}
       </div>
 
       <div class="table-shell">
@@ -219,7 +224,7 @@
         <span class="preview-label">Preview</span>
         <strong>{{ newUserForm.name || 'New User' }}</strong>
         <span>{{ newUserForm.email || 'new.user@paperstockindia.com' }}</span>
-        <span>{{ newUserForm.role }} • {{ newUserForm.status }} • {{ newUserForm.planLabel }}</span>
+        <span>{{ newUserForm.role }} &bull; {{ newUserForm.status }} &bull; {{ newUserForm.planLabel }}</span>
       </div>
 
       <div class="modal-actions">

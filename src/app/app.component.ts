@@ -60,12 +60,10 @@ export class AppComponent implements OnInit, OnDestroy {
       if (user) {
         this.userName = user.name;
         this.userRole = user.role;
-        // Initialize portfolio when user logs in
-        this.store.dispatch(PortfolioActions.initializeMockPortfolio({ userRole: user.role }));
+        this.store.dispatch(PortfolioActions.fetchPortfolio({ userRole: user.role }));
       } else {
         this.userName = 'User';
         this.userRole = 'FREE';
-        // Clear portfolio when user logs out
         this.store.dispatch(PortfolioActions.clearPortfolio());
       }
     });

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatGridListModule } from '@angular/material/grid-list';
@@ -7,6 +7,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { AppState } from '../../../config/ngrx.config';
+import { Portfolio } from '../../../core/models/portfolio.model';
 import * as PortfolioSelectors from '../../../store/portfolio/portfolio.selectors';
 
 @Component({
@@ -21,8 +22,8 @@ import * as PortfolioSelectors from '../../../store/portfolio/portfolio.selector
   ],
   templateUrl: './portfolio.component.html',
 })
-export class PortfolioComponent implements OnInit {
-  portfolio$: Observable<any>;
+export class PortfolioComponent {
+  portfolio$: Observable<Portfolio | null>;
   todayPnL$: Observable<number>;
   todayPnLPercent$: Observable<number>;
   portfolioPnL$: Observable<number>;
@@ -40,9 +41,5 @@ export class PortfolioComponent implements OnInit {
     this.cash$ = this.store.select(PortfolioSelectors.selectCash);
     this.holdingCount$ = this.store.select(PortfolioSelectors.selectHoldingCount);
     this.tradeCount$ = this.store.select(PortfolioSelectors.selectTradeCount);
-  }
-
-  ngOnInit(): void {
-    console.log('Portfolio Component loaded');
   }
 }

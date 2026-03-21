@@ -7,6 +7,10 @@
 
       <mat-card-content>
         <form [formGroup]="tradeForm" (ngSubmit)="onSubmit()">
+          <div class="loading-state" *ngIf="stockLoading$ | async">
+            Loading stock data...
+          </div>
+
           <div class="form-section">
             <label class="section-label">Trade Type</label>
             <mat-radio-group formControlName="tradeType" class="radio-group">
@@ -86,9 +90,9 @@
 
           <button
             mat-raised-button
+            type="submit"
             [color]="tradeForm.get('tradeType')?.value === 'BUY' ? 'primary' : 'warn'"
             [disabled]="!tradeForm.valid || isSubmitting"
-            (click)="onSubmit()"
             class="submit-btn"
           >
             <mat-icon *ngIf="!isSubmitting">{{ tradeForm.get('tradeType')?.value === 'BUY' ? 'shopping_cart' : 'sell' }}</mat-icon>

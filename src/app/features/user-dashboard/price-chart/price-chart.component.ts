@@ -10,7 +10,8 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AppState } from '../../../config/ngrx.config';
 import { Holding } from '../../../core/models/portfolio.model';
-import { NIFTY_50_STOCKS, StockList } from '../../../core/models/stock.model';
+import { StockList } from '../../../core/models/stock.model';
+import { StocksService } from '../../../core/services/stocks.service';
 import * as PortfolioSelectors from '../../../store/portfolio/portfolio.selectors';
 
 @Component({
@@ -29,7 +30,7 @@ import * as PortfolioSelectors from '../../../store/portfolio/portfolio.selector
 export class PriceChartComponent implements OnInit, OnDestroy {
   selectedStock = 'INFY';
   chartTimeframe = '1D';
-  stockOptions: StockList[] = NIFTY_50_STOCKS.slice(0, 10);
+  stockOptions: StockList[] = [];
   currentPrice = 2850.5;
   highPrice = 2900;
   lowPrice = 2800;
@@ -37,11 +38,15 @@ export class PriceChartComponent implements OnInit, OnDestroy {
   priceChangePercent = 1.81;
   linePoints = '';
   areaPoints = '';
+  loading$ = this.stocksService.loading$;
 
   private holdingsSnapshot: Holding[] = [];
   private destroy$ = new Subject<void>();
 
-  constructor(private store: Store<AppState>) {}
+  constructor(
+    private store: Store<AppState>,
+    private stocksService: StocksService
+  ) {}
 
   ngOnInit(): void {
     this.store.select(PortfolioSelectors.selectHoldings)
@@ -54,6 +59,24 @@ export class PriceChartComponent implements OnInit, OnDestroy {
         }
 
         this.syncChartData();
+      });
+
+    this.stocksService.loadStocks()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => this.syncChartData(),
+      });
+
+    this.stocksService.loadStockOptions()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (stockOptions) => {
+          this.stockOptions = stockOptions;
+          if (!stockOptions.some((stock) => stock.symbol === this.selectedStock) && stockOptions.length > 0) {
+            this.selectedStock = stockOptions[0].symbol;
+          }
+          this.syncChartData();
+        },
       });
   }
 
@@ -85,24 +108,17 @@ export class PriceChartComponent implements OnInit, OnDestroy {
 
   private getBasePrice(symbol: string): number {
     const matchedHolding = this.holdingsSnapshot.find((holding) => holding.symbol === symbol);
+    const stockPrice = this.stocksService.getStockSnapshot(symbol)?.currentPrice;
+
     if (matchedHolding) {
       return matchedHolding.currentPrice;
     }
 
-    const fallbackPrices: Record<string, number> = {
-      RELIANCE: 2925.5,
-      TCS: 3350,
-      INFY: 2850.5,
-      WIPRO: 460.75,
-      HINDUNILVR: 2550,
-      LT: 3725.4,
-      HCLTECH: 1520.5,
-      AXISBANK: 945.75,
-      ICICIBANK: 925.5,
-      HDFC: 1685.25,
-    };
+    if (stockPrice) {
+      return stockPrice;
+    }
 
-    return fallbackPrices[symbol] ?? 1000;
+    return 1000;
   }
 
   private buildSeries(basePrice: number, symbol: string, timeframe: string): number[] {

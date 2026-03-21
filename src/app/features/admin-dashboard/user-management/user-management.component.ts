@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,19 +10,18 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
-import { User } from '../../../core/models/user.model';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { AdminUser } from '../../../core/models/admin-user.model';
+import { UserRole } from '../../../core/models/user.model';
+import { CreateAdminUserRequest, UsersService } from '../../../core/services/users.service';
 
 type UserStatus = 'ACTIVE' | 'PENDING' | 'SUSPENDED';
-
-type AdminUserRow = User & {
-  status: UserStatus;
-  planLabel: string;
-};
 
 type NewUserForm = {
   name: string;
   email: string;
-  role: User['role'];
+  role: UserRole;
   status: UserStatus;
   planLabel: string;
   portfolioValue: number;
@@ -48,95 +47,45 @@ type NewUserForm = {
   ],
   templateUrl: './user-management.component.html',
 })
-export class UserManagementComponent {
+export class UserManagementComponent implements OnInit, OnDestroy {
   displayedColumns = ['name', 'role', 'status', 'planLabel', 'portfolioValue', 'availableBalance', 'todayPnL', 'actions'];
   searchTerm = '';
   lastSync = '03:18 AM';
   isAddUserModalOpen = false;
-
-  users: AdminUserRow[] = [
-    {
-      id: '1',
-      name: 'Admin User',
-      email: 'admin@paperstockindia.com',
-      role: 'ADMIN',
-      portfolioValue: 500000,
-      investedValue: 350000,
-      availableBalance: 150000,
-      todayPnL: 5000,
-      todayPnLPercent: 1.85,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      status: 'ACTIVE',
-      planLabel: 'Enterprise Admin',
-    },
-    {
-      id: '2',
-      name: 'Paid User',
-      email: 'paid@paperstockindia.com',
-      role: 'PAID',
-      portfolioValue: 250000,
-      investedValue: 200000,
-      availableBalance: 50000,
-      todayPnL: 2500,
-      todayPnLPercent: 1.25,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      status: 'ACTIVE',
-      planLabel: 'Pro Trader',
-    },
-    {
-      id: '3',
-      name: 'Free User',
-      email: 'user@paperstockindia.com',
-      role: 'FREE',
-      portfolioValue: 100000,
-      investedValue: 75000,
-      availableBalance: 25000,
-      todayPnL: 500,
-      todayPnLPercent: 0.5,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      status: 'PENDING',
-      planLabel: 'Starter',
-    },
-    {
-      id: '4',
-      name: 'Riya Sharma',
-      email: 'riya.sharma@paperstockindia.com',
-      role: 'PAID',
-      portfolioValue: 320000,
-      investedValue: 240000,
-      availableBalance: 80000,
-      todayPnL: -1200,
-      todayPnLPercent: -0.38,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      status: 'ACTIVE',
-      planLabel: 'Swing Elite',
-    },
-    {
-      id: '5',
-      name: 'Ganesh Kumar',
-      email: 'ganesh.kumar@paperstockindia.com',
-      role: 'FREE',
-      portfolioValue: 85000,
-      investedValue: 62000,
-      availableBalance: 23000,
-      todayPnL: 320,
-      todayPnLPercent: 0.29,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      status: 'SUSPENDED',
-      planLabel: 'Starter',
-    },
-  ];
-
+  users: AdminUser[] = [];
+  loading$ = this.usersService.loading$;
+  error$ = this.usersService.error$;
   newUserForm: NewUserForm = this.getDefaultNewUserForm();
 
-  constructor(private snackBar: MatSnackBar) {}
+  private destroy$ = new Subject<void>();
 
-  get filteredUsers(): AdminUserRow[] {
+  constructor(
+    private usersService: UsersService,
+    private snackBar: MatSnackBar
+  ) {}
+
+  ngOnInit(): void {
+    this.usersService.users$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((users) => {
+        this.users = users;
+      });
+
+    this.usersService.loadUsers()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        error: (error) => {
+          this.snackBar.open(error.message || 'Failed to load users', 'Close', { duration: 3500 });
+        },
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  get filteredUsers(): AdminUser[] {
     const query = this.searchTerm.trim().toLowerCase();
     if (!query) {
       return this.users;
@@ -184,61 +133,33 @@ export class UserManagementComponent {
       return;
     }
 
-    const now = new Date();
-    const user: AdminUserRow = {
-      id: String(this.users.length + 1),
+    const request: CreateAdminUserRequest = {
       name: this.newUserForm.name.trim(),
       email: this.newUserForm.email.trim(),
       role: this.newUserForm.role,
       status: this.newUserForm.status,
       planLabel: this.newUserForm.planLabel.trim() || this.getPlanLabel(this.newUserForm.role),
       portfolioValue: Number(this.newUserForm.portfolioValue) || 0,
-      investedValue: Math.max((Number(this.newUserForm.portfolioValue) || 0) - (Number(this.newUserForm.availableBalance) || 0), 0),
       availableBalance: Number(this.newUserForm.availableBalance) || 0,
       todayPnL: Number(this.newUserForm.todayPnL) || 0,
-      todayPnLPercent: this.calculateTodayPnLPercent(
-        Number(this.newUserForm.todayPnL) || 0,
-        Number(this.newUserForm.portfolioValue) || 0
-      ),
-      createdAt: now.toISOString(),
-      updatedAt: now.toISOString(),
     };
 
-    this.users = [user, ...this.users];
-    this.lastSync = this.formatSyncTime(now);
-    this.closeAddUserModal();
-    this.snackBar.open(`Mock user created for ${user.name}.`, 'Close', { duration: 3500 });
+    this.usersService.createUser(request)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (user) => {
+          this.lastSync = this.formatSyncTime(new Date());
+          this.closeAddUserModal();
+          this.snackBar.open(`Mock user created for ${user.name}.`, 'Close', { duration: 3500 });
+        },
+        error: (error) => {
+          this.snackBar.open(error.message || 'Failed to create mock user', 'Close', { duration: 3500 });
+        },
+      });
   }
 
   exportUsers(): void {
-    const header = [
-      'Name',
-      'Email',
-      'Role',
-      'Status',
-      'Plan',
-      'PortfolioValue',
-      'AvailableBalance',
-      'TodayPnL',
-      'CreatedAt',
-    ];
-
-    const rows = this.filteredUsers.map((user) => [
-      user.name,
-      user.email,
-      user.role,
-      user.status,
-      user.planLabel,
-      user.portfolioValue,
-      user.availableBalance,
-      user.todayPnL,
-      user.createdAt,
-    ]);
-
-    const csv = [header, ...rows]
-      .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(','))
-      .join('\n');
-
+    const csv = this.usersService.exportUsersCsv(this.filteredUsers);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -266,7 +187,7 @@ export class UserManagementComponent {
     };
   }
 
-  private getPlanLabel(role: User['role']): string {
+  private getPlanLabel(role: UserRole): string {
     switch (role) {
       case 'ADMIN':
         return 'Enterprise Admin';
@@ -276,14 +197,6 @@ export class UserManagementComponent {
       default:
         return 'Starter';
     }
-  }
-
-  private calculateTodayPnLPercent(todayPnL: number, portfolioValue: number): number {
-    if (!portfolioValue) {
-      return 0;
-    }
-
-    return Number(((todayPnL / portfolioValue) * 100).toFixed(2));
   }
 
   private formatSyncTime(date: Date): string {

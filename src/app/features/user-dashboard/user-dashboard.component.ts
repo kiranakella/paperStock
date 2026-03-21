@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -21,8 +21,4 @@ import { TradeFormComponent } from './trade-form/trade-form.component';
   ],
   templateUrl: './user-dashboard.component.html',
 })
-export class UserDashboardComponent implements OnInit {
-  ngOnInit(): void {
-    console.log('User Dashboard Component loaded');
-  }
-}
+export class UserDashboardComponent {}

@@ -32,7 +32,6 @@ export class RegisterComponent {
   showPassword = false;
 
   onRegister(): void {
-    console.log('Register:', { name: this.name, email: this.email });
   }
 
   togglePasswordVisibility(): void {

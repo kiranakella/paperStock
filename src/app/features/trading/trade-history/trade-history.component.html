@@ -5,6 +5,14 @@
     </mat-card-header>
 
     <mat-card-content>
+      <div class="error-banner" *ngIf="error$ | async as error">
+        {{ error }}
+      </div>
+
+      <div class="loading-state" *ngIf="loading$ | async">
+        Loading trade history...
+      </div>
+
       <table mat-table [dataSource]="tradeHistory" class="history-table">
         <ng-container matColumnDef="date">
           <th mat-header-cell *matHeaderCellDef>Date &amp; Time</th>

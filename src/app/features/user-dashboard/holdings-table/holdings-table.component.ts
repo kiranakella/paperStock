@@ -10,6 +10,7 @@ import { Store } from '@ngrx/store';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AppState } from '../../../config/ngrx.config';
+import { Holding } from '../../../core/models/portfolio.model';
 import * as PortfolioSelectors from '../../../store/portfolio/portfolio.selectors';
 
 @Component({
@@ -31,7 +32,7 @@ export class HoldingsTableComponent implements OnInit, OnDestroy, AfterViewInit 
   @ViewChild(MatSort) sort!: MatSort;
 
   holdings$ = this.store.select(PortfolioSelectors.selectHoldings);
-  dataSource = new MatTableDataSource<any>([]);
+  dataSource = new MatTableDataSource<Holding>([]);
   displayedColumns: string[] = ['symbol', 'quantity', 'avgPrice', 'currentPrice', 'totalInvested', 'currentValue', 'pnl', 'dayPnL', 'actions'];
   private destroy$ = new Subject<void>();
 
@@ -41,12 +42,10 @@ export class HoldingsTableComponent implements OnInit, OnDestroy, AfterViewInit 
   ) {}
 
   ngOnInit(): void {
-    console.log('Holdings Table Component loaded');
     this.holdings$
       .pipe(takeUntil(this.destroy$))
       .subscribe((holdings) => {
         const nextHoldings = holdings ?? [];
-        console.log('Holdings updated:', nextHoldings.length);
         this.dataSource.data = nextHoldings;
         if (this.paginator) {
           this.paginator.firstPage();

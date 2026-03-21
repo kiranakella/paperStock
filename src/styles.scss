@@ -97,6 +97,30 @@ app-root {
   color: #2196f3;
 }
 
+.loading-state,
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.loading-state {
+  background: #eef4ff;
+  color: #3f51b5;
+  border: 1px solid rgba(63, 81, 181, 0.18);
+}
+
+.error-banner {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid rgba(198, 40, 40, 0.18);
+}
+
 .mt-1 {
   margin-top: 8px;
 }

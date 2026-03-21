@@ -70,14 +70,26 @@ export class LoginComponent implements OnInit {
       next: () => {
         this.router.navigateByUrl(this.returnUrl);
       },
-      error: (error: any) => {
+      error: (error: unknown) => {
         this.isLoading = false;
-        this.errorMessage = error.message || 'Login failed. Please try again.';
+        this.errorMessage = this.getErrorMessage(error, 'Login failed. Please try again.');
       },
     });
   }
 
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
+  }
+
+  private getErrorMessage(error: unknown, fallback: string): string {
+    if (error instanceof Error) {
+      return error.message || fallback;
+    }
+
+    if (error && typeof error === 'object' && 'message' in error) {
+      return String((error as { message?: unknown }).message || fallback);
+    }
+
+    return fallback;
   }
 }

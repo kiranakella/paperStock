@@ -16,9 +16,19 @@
         <span matListItemTitle>Portfolio</span>
       </mat-list-item>
 
+      <mat-list-item [routerLink]="['/dashboard/holdings']" routerLinkActive="active">
+        <mat-icon matListItemIcon>inventory</mat-icon>
+        <span matListItemTitle>Holdings</span>
+      </mat-list-item>
+
       <mat-list-item [routerLink]="['/dashboard/trade']" routerLinkActive="active">
         <mat-icon matListItemIcon>show_chart</mat-icon>
         <span matListItemTitle>Trade</span>
+      </mat-list-item>
+
+      <mat-list-item [routerLink]="['/dashboard/chart']" routerLinkActive="active">
+        <mat-icon matListItemIcon>trending_up</mat-icon>
+        <span matListItemTitle>Charts</span>
       </mat-list-item>
 
       <mat-list-item [routerLink]="['/trade-history']" routerLinkActive="active">

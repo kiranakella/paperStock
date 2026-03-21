@@ -3,15 +3,12 @@
     <h1>Trading Dashboard</h1>
   </div>
 
-  <mat-tab-group class="dashboard-tabs" dynamicHeight>
+  <mat-tab-group class="dashboard-tabs" dynamicHeight [selectedIndex]="selectedTabIndex" (selectedIndexChange)="onTabChange($event)">
     <mat-tab>
       <ng-template mat-tab-label>
         <mat-icon>account_balance</mat-icon>
         <span>Portfolio</span>
       </ng-template>
-      <div class="tab-content">
-        <app-portfolio></app-portfolio>
-      </div>
     </mat-tab>
 
     <mat-tab>
@@ -19,9 +16,6 @@
         <mat-icon>inventory</mat-icon>
         <span>Holdings</span>
       </ng-template>
-      <div class="tab-content">
-        <app-holdings-table></app-holdings-table>
-      </div>
     </mat-tab>
 
     <mat-tab>
@@ -29,9 +23,6 @@
         <mat-icon>show_chart</mat-icon>
         <span>Trade</span>
       </ng-template>
-      <div class="tab-content">
-        <app-trade-form></app-trade-form>
-      </div>
     </mat-tab>
 
     <mat-tab>
@@ -39,9 +30,10 @@
         <mat-icon>trending_up</mat-icon>
         <span>Charts</span>
       </ng-template>
-      <div class="tab-content">
-        <app-price-chart></app-price-chart>
-      </div>
     </mat-tab>
   </mat-tab-group>
+
+  <div class="tab-content">
+    <router-outlet></router-outlet>
+  </div>
 </div>

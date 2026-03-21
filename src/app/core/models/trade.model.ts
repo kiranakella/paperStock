@@ -1,13 +1,17 @@
+export type TradeSide = 'BUY' | 'SELL';
+export type OrderType = 'MARKET' | 'LIMIT';
+export type TradeStatus = 'PENDING' | 'EXECUTED' | 'REJECTED' | 'CANCELLED';
+
 export interface Trade {
   id: string;
   userId: string;
   symbol: string;
-  type: 'BUY' | 'SELL';
-  orderType: 'MARKET' | 'LIMIT';
+  type: TradeSide;
+  orderType: OrderType;
   quantity: number;
   price: number;
   totalAmount: number;
-  status: 'PENDING' | 'EXECUTED' | 'REJECTED' | 'CANCELLED';
+  status: TradeStatus;
   executedPrice: number;
   executedQuantity: number;
   executedAmount: number;
@@ -19,8 +23,8 @@ export interface Trade {
 
 export interface TradeRequest {
   symbol: string;
-  type: 'BUY' | 'SELL';
-  orderType: 'MARKET' | 'LIMIT';
+  type: TradeSide;
+  orderType: OrderType;
   quantity: number;
   price?: number;  // Only for limit orders
 }

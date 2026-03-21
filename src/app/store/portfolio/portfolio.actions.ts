@@ -1,9 +1,11 @@
 import { createAction, props } from '@ngrx/store';
 import { Portfolio, Holding } from '../../core/models/portfolio.model';
+import { UserRole } from '../../core/models/user.model';
 
 // Fetch Portfolio Actions
 export const fetchPortfolio = createAction(
-  '[Portfolio] Fetch Portfolio'
+  '[Portfolio] Fetch Portfolio',
+  props<{ userRole: UserRole }>()
 );
 
 export const fetchPortfolioSuccess = createAction(
@@ -18,7 +20,8 @@ export const fetchPortfolioFailure = createAction(
 
 // Fetch Holdings Actions
 export const fetchHoldings = createAction(
-  '[Portfolio] Fetch Holdings'
+  '[Portfolio] Fetch Holdings',
+  props<{ userRole: UserRole }>()
 );
 
 export const fetchHoldingsSuccess = createAction(
@@ -50,10 +53,4 @@ export const updatePortfolioValue = createAction(
 // Clear Portfolio Actions
 export const clearPortfolio = createAction(
   '[Portfolio] Clear Portfolio'
-);
-
-// Initialize Mock Portfolio Actions
-export const initializeMockPortfolio = createAction(
-  '[Portfolio] Initialize Mock Portfolio',
-  props<{ userRole: 'ADMIN' | 'PAID' | 'FREE' }>()
 );

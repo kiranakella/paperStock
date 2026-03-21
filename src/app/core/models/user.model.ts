@@ -1,8 +1,10 @@
+export type UserRole = 'ADMIN' | 'PAID' | 'FREE';
+
 export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'ADMIN' | 'PAID' | 'FREE';
+  role: UserRole;
   portfolioValue: number;
   investedValue: number;
   availableBalance: number;

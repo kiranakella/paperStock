@@ -1,6 +1,5 @@
 import { createReducer, on } from '@ngrx/store';
 import { Portfolio, Holding } from '../../core/models/portfolio.model';
-import { MockPortfolioFactory } from '../../core/factories/mock-portfolio.factory';
 import * as PortfolioActions from './portfolio.actions';
 
 export interface PortfolioState {
@@ -97,15 +96,4 @@ export const portfolioReducer = createReducer(
     error: null,
   })),
 
-  // Initialize Mock Portfolio
-  on(PortfolioActions.initializeMockPortfolio, (state, { userRole }) => {
-    const mockPortfolio = MockPortfolioFactory.generatePortfolio(userRole);
-    return {
-      ...state,
-      portfolio: mockPortfolio,
-      holdings: mockPortfolio.holdings,
-      isLoading: false,
-      error: null,
-    };
-  })
 );

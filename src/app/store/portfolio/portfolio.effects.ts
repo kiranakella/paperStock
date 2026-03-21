@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { of } from 'rxjs';
-import { map, catchError, switchMap } from 'rxjs/operators';
+import { catchError, map, switchMap } from 'rxjs/operators';
+import { PortfolioService } from '../../core/services/portfolio.service';
 import * as PortfolioActions from './portfolio.actions';
 
 @Injectable()
@@ -9,14 +10,13 @@ export class PortfolioEffects {
   fetchPortfolio$ = createEffect(() =>
     this.actions$.pipe(
       ofType(PortfolioActions.fetchPortfolio),
-      switchMap(() =>
-        // TODO: Implement API call to fetch portfolio
-        of({ userId: '', totalValue: 0, investedValue: 0, currentValue: 0, cash: 100000, todayPnL: 0, todayPnLPercent: 0, totalPnL: 0, totalPnLPercent: 0, holdings: [], tradeCount: 0, lastUpdated: new Date().toISOString() }).pipe(
+      switchMap(({ userRole }) =>
+        this.portfolioService.loadPortfolio(userRole).pipe(
           map((portfolio) =>
             PortfolioActions.fetchPortfolioSuccess({ portfolio })
           ),
           catchError((error) =>
-            of(PortfolioActions.fetchPortfolioFailure({ error: error.message }))
+            of(PortfolioActions.fetchPortfolioFailure({ error: this.getErrorMessage(error, 'Failed to load portfolio') }))
           )
         )
       )
@@ -26,19 +26,33 @@ export class PortfolioEffects {
   fetchHoldings$ = createEffect(() =>
     this.actions$.pipe(
       ofType(PortfolioActions.fetchHoldings),
-      switchMap(() =>
-        // TODO: Implement API call to fetch holdings
-        of([]).pipe(
+      switchMap(({ userRole }) =>
+        this.portfolioService.loadHoldings(userRole).pipe(
           map((holdings) =>
             PortfolioActions.fetchHoldingsSuccess({ holdings })
           ),
           catchError((error) =>
-            of(PortfolioActions.fetchHoldingsFailure({ error: error.message }))
+            of(PortfolioActions.fetchHoldingsFailure({ error: this.getErrorMessage(error, 'Failed to load holdings') }))
           )
         )
       )
     )
   );
 
-  constructor(private actions$: Actions) {}
+  constructor(
+    private actions$: Actions,
+    private portfolioService: PortfolioService
+  ) {}
+
+  private getErrorMessage(error: unknown, fallback: string): string {
+    if (error instanceof Error) {
+      return error.message || fallback;
+    }
+
+    if (error && typeof error === 'object' && 'message' in error) {
+      return String((error as { message?: unknown }).message || fallback);
+    }
+
+    return fallback;
+  }
 }

@@ -4,6 +4,7 @@ import { AuthState, authReducer } from '../store/auth/auth.reducer';
 import { AuthEffects } from '../store/auth/auth.effects';
 import { PortfolioState, portfolioReducer } from '../store/portfolio/portfolio.reducer';
 import { PortfolioEffects } from '../store/portfolio/portfolio.effects';
+import { MarketEffects } from '../store/market/market.effects';
 import { MarketState, marketReducer } from '../store/market/market.reducer';
 
 // App State Interface
@@ -32,7 +33,7 @@ export const ngrxConfig = {
     },
   } as StoreConfig<AppState>,
 
-  effects: [AuthEffects, PortfolioEffects],
+  effects: [AuthEffects, PortfolioEffects, MarketEffects],
 
   devToolsConfig: {
     name: 'PaperStockIndia',
@@ -40,4 +41,3 @@ export const ngrxConfig = {
     logOnly: environment.production,
   },
 };
-

@@ -4,7 +4,6 @@ import { of } from 'rxjs';
 import { map, catchError, switchMap, tap } from 'rxjs/operators';
 import { AuthService } from '../../core/auth/services/auth.service';
 import * as AuthActions from './auth.actions';
-import * as PortfolioActions from '../portfolio/portfolio.actions';
 
 @Injectable()
 export class AuthEffects {
@@ -17,7 +16,7 @@ export class AuthEffects {
             AuthActions.loginSuccess({ response })
           ),
           catchError((error) =>
-            of(AuthActions.loginFailure({ error: error.message }))
+            of(AuthActions.loginFailure({ error: this.getErrorMessage(error, 'Login failed') }))
           )
         )
       )
@@ -33,7 +32,7 @@ export class AuthEffects {
             AuthActions.registerSuccess({ response })
           ),
           catchError((error) =>
-            of(AuthActions.registerFailure({ error: error.message }))
+            of(AuthActions.registerFailure({ error: this.getErrorMessage(error, 'Registration failed') }))
           )
         )
       )
@@ -49,7 +48,7 @@ export class AuthEffects {
             AuthActions.refreshTokenSuccess({ response })
           ),
           catchError((error) =>
-            of(AuthActions.refreshTokenFailure({ error: error.message }))
+            of(AuthActions.refreshTokenFailure({ error: this.getErrorMessage(error, 'Token refresh failed') }))
           )
         )
       )
@@ -64,40 +63,20 @@ export class AuthEffects {
     )
   );
 
-  // Initialize portfolio after successful login
-  initializePortfolioAfterLogin$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(AuthActions.loginSuccess),
-      map(({ response }) =>
-        PortfolioActions.initializeMockPortfolio({
-          userRole: response.user.role,
-        })
-      )
-    )
-  );
-
-  // Initialize portfolio after successful register
-  initializePortfolioAfterRegister$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(AuthActions.registerSuccess),
-      map(({ response }) =>
-        PortfolioActions.initializeMockPortfolio({
-          userRole: response.user.role,
-        })
-      )
-    )
-  );
-
-  // Clear portfolio on logout
-  clearPortfolioOnLogout$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(AuthActions.logoutSuccess),
-      map(() => PortfolioActions.clearPortfolio())
-    )
-  );
-
   constructor(
     private actions$: Actions,
     private authService: AuthService
   ) {}
+
+  private getErrorMessage(error: unknown, fallback: string): string {
+    if (error instanceof Error) {
+      return error.message || fallback;
+    }
+
+    if (error && typeof error === 'object' && 'message' in error) {
+      return String((error as { message?: unknown }).message || fallback);
+    }
+
+    return fallback;
+  }
 }

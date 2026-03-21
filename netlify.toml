@@ -1,6 +1,6 @@
 [build]
   command = "npm run build -- --configuration production"
-  publish = "dist/paperStock"
+  publish = "dist/paperstock-frontend"
 
 [build.environment]
   NPM_FLAGS = "--legacy-peer-deps"

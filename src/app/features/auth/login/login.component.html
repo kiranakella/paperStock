@@ -13,13 +13,13 @@
 
       <form (ngSubmit)="onLogin()">
         <mat-form-field appearance="outline">
-          <mat-label>Email</mat-label>
+          <mat-label>Username</mat-label>
           <input
             matInput
-            [(ngModel)]="email"
-            name="email"
-            type="email"
-            placeholder="user@example.com"
+            [(ngModel)]="username"
+            name="username"
+            type="text"
+            placeholder="demo"
             [disabled]="isLoading"
           />
         </mat-form-field>

@@ -7,7 +7,7 @@ import { unwrapApiResponse } from '../adapters/api-response.adapter';
 
 @Injectable()
 export abstract class BaseDataService {
-  protected readonly useMock = environment.USE_MOCK !== false;
+  protected useMock = environment.USE_MOCK !== false;
   protected readonly mockDelayMs = 250;
 
   protected readonly loadingSubject = new BehaviorSubject<boolean>(false);

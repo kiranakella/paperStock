@@ -29,7 +29,7 @@ import { LoginRequest } from '../../../core/models/user.model';
   templateUrl: './login.component.html',
 })
 export class LoginComponent implements OnInit {
-  email = '';
+  username = '';
   password = '';
   showPassword = false;
   isLoading = false;
@@ -53,8 +53,8 @@ export class LoginComponent implements OnInit {
   }
 
   onLogin(): void {
-    if (!this.email || !this.password) {
-      this.errorMessage = 'Please enter both email and password';
+    if (!this.username || !this.password) {
+      this.errorMessage = 'Please enter both username and password';
       return;
     }
 
@@ -62,7 +62,7 @@ export class LoginComponent implements OnInit {
     this.errorMessage = '';
 
     const credentials: LoginRequest = {
-      email: this.email.trim(),
+      username: this.username.trim(),
       password: this.password,
     };
 

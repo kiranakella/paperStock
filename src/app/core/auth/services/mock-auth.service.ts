@@ -21,12 +21,28 @@ export class MockAuthService {
     return of(null).pipe(
       delay(1000),
       map(() => {
+        if (credentials.username === 'demo' && credentials.password === 'demo123') {
+          return toAuthResponse({
+            id: 'demo-user',
+            email: 'demo@paperstockindia.com',
+            name: 'Demo Trader',
+            role: 'FREE',
+            portfolioValue: 100000,
+            investedValue: 0,
+            availableBalance: 100000,
+            todayPnL: 0,
+            todayPnLPercent: 0,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+        }
+
         const user = this.mockUsers.find(
-          (u) => u.email === credentials.email && u.password === credentials.password
+          (u) => (u.email === credentials.username || u.name === credentials.username) && u.password === credentials.password
         );
 
         if (!user) {
-          throw new Error('Invalid email or password');
+          throw new Error('Invalid username or password');
         }
 
         return toAuthResponse({

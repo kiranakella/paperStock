@@ -1,15 +1,12 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, finalize, map, tap } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
-import { API_ENDPOINTS, buildApiUrl } from '../../constants/api-endpoints';
-import { ApiResponse } from '../../models/api-response.model';
 import { User, AuthResponse, LoginRequest, RegisterRequest, UserRole } from '../../models/user.model';
 import { TokenService } from './token.service';
 import { MockAuthService } from './mock-auth.service';
-import { unwrapApiResponse } from '../../adapters/api-response.adapter';
+import { GraphqlApiService } from '../../services/graphql-api.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -28,10 +25,10 @@ export class AuthService {
   private readonly useMockAuth = environment.USE_MOCK !== false;
 
   constructor(
-    private http: HttpClient,
     private tokenService: TokenService,
     private router: Router,
-    private mockAuthService: MockAuthService
+    private mockAuthService: MockAuthService,
+    private graphqlApi: GraphqlApiService
   ) {
     this.initializeAuthState();
   }
@@ -53,27 +50,53 @@ export class AuthService {
   }
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
-    return this.requestAuth({
-      mockFactory: () => this.mockAuthService.login(credentials),
-      apiFactory: () => this.http.post<ApiResponse<AuthResponse> | AuthResponse>(
-        this.getAuthUrl(API_ENDPOINTS.AUTH.LOGIN),
-        credentials
-      ),
-      errorMessage: 'Login failed',
-    }).pipe(
-      tap((response) => this.handleAuthResponse(response))
+    this.loadingSubject.next(true);
+    this.errorSubject.next(null);
+
+    if (this.useMockAuth) {
+      return this.mockAuthService.login(credentials).pipe(
+        tap((response) => this.handleAuthResponse(response)),
+        finalize(() => this.loadingSubject.next(false))
+      );
+    }
+
+    return this.graphqlApi.post<{
+      login: {
+        token: string;
+        tokenType: string;
+        username: string;
+        cashBalance: number;
+      };
+    }>(
+      `
+        mutation Login($username: String!, $password: String!) {
+          login(username: $username, password: $password) {
+            token
+            tokenType
+            username
+            cashBalance
+          }
+        }
+      `,
+      {
+        username: credentials.username,
+        password: credentials.password,
+      }
+    ).pipe(
+      map((response) => this.mapGraphqlAuthResponse(response.login)),
+      tap((response) => this.handleAuthResponse(response)),
+      catchError((error) => {
+        const message = this.extractErrorMessage(error, 'Login failed');
+        this.errorSubject.next(message);
+        console.error(message, error);
+        return throwError(() => new Error(message));
+      }),
+      finalize(() => this.loadingSubject.next(false))
     );
   }
 
   register(data: RegisterRequest): Observable<AuthResponse> {
-    return this.requestAuth({
-      mockFactory: () => this.mockAuthService.register(data),
-      apiFactory: () => this.http.post<ApiResponse<AuthResponse> | AuthResponse>(
-        this.getAuthUrl(API_ENDPOINTS.AUTH.REGISTER),
-        data
-      ),
-      errorMessage: 'Registration failed',
-    }).pipe(
+    return this.mockAuthService.register(data).pipe(
       tap((response) => this.handleAuthResponse(response))
     );
   }
@@ -88,19 +111,7 @@ export class AuthService {
   }
 
   refreshToken(): Observable<AuthResponse> {
-    const token = this.tokenService.getToken();
-    if (!token) {
-      return throwError(() => new Error('No token available'));
-    }
-
-    return this.requestAuth({
-      mockFactory: () => this.mockAuthService.refreshToken(),
-      apiFactory: () => this.http.post<ApiResponse<AuthResponse> | AuthResponse>(
-        this.getAuthUrl(API_ENDPOINTS.AUTH.REFRESH),
-        { token }
-      ),
-      errorMessage: 'Token refresh failed',
-    }).pipe(
+    return this.mockAuthService.refreshToken().pipe(
       tap((response) => this.handleAuthResponse(response))
     );
   }
@@ -158,33 +169,6 @@ export class AuthService {
     }
   }
 
-  private requestAuth<T>(config: {
-    mockFactory: () => Observable<T>;
-    apiFactory: () => Observable<ApiResponse<T> | T>;
-    errorMessage: string;
-  }): Observable<T> {
-    this.loadingSubject.next(true);
-    this.errorSubject.next(null);
-
-    const source = this.useMockAuth
-      ? config.mockFactory()
-      : config.apiFactory().pipe(map((response) => unwrapApiResponse(response)));
-
-    return source.pipe(
-      catchError((error) => {
-        const message = this.extractErrorMessage(error, config.errorMessage);
-        this.errorSubject.next(message);
-        console.error(message, error);
-        return throwError(() => new Error(message));
-      }),
-      finalize(() => this.loadingSubject.next(false))
-    );
-  }
-
-  private getAuthUrl(path: string): string {
-    return buildApiUrl(path);
-  }
-
   private extractErrorMessage(error: unknown, fallback: string): string {
     if (error instanceof Error) {
       return error.message || fallback;
@@ -201,5 +185,32 @@ export class AuthService {
     }
 
     return fallback;
+  }
+
+  private mapGraphqlAuthResponse(payload: {
+    token: string;
+    tokenType: string;
+    username: string;
+    cashBalance: number;
+  }): AuthResponse {
+    const now = new Date().toISOString();
+
+    return {
+      token: payload.token,
+      expiresIn: 24 * 60 * 60,
+      user: {
+        id: 'demo-user',
+        email: `${payload.username}@paperstockindia.com`,
+        name: payload.username === 'demo' ? 'Demo Trader' : payload.username,
+        role: 'FREE',
+        portfolioValue: payload.cashBalance,
+        investedValue: 0,
+        availableBalance: payload.cashBalance,
+        todayPnL: 0,
+        todayPnLPercent: 0,
+        createdAt: now,
+        updatedAt: now,
+      },
+    };
   }
 }

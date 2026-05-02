@@ -22,6 +22,7 @@ export class TradesService extends BaseDataService {
     private stocksService: StocksService
   ) {
     super();
+    this.useMock = true;
   }
 
   loadTrades(): Observable<Trade[]> {

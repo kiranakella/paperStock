@@ -4,7 +4,7 @@ import { User, AuthResponse } from '../../core/models/user.model';
 // Login Actions
 export const login = createAction(
   '[Auth] Login',
-  props<{ email: string; password: string }>()
+  props<{ username: string; password: string }>()
 );
 
 export const loginSuccess = createAction(

@@ -10,8 +10,8 @@ export class AuthEffects {
   login$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.login),
-      switchMap(({ email, password }) =>
-        this.authService.login({ email, password }).pipe(
+      switchMap(({ username, password }) =>
+        this.authService.login({ username, password }).pipe(
           map((response) =>
             AuthActions.loginSuccess({ response })
           ),

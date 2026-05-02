@@ -20,6 +20,7 @@ export class PortfolioService extends BaseDataService {
 
   constructor(private http: HttpClient) {
     super();
+    this.useMock = true;
   }
 
   loadPortfolio(userRole: UserRole): Observable<Portfolio> {
